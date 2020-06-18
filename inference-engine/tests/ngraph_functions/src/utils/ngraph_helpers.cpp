@@ -15,6 +15,35 @@
 
 namespace ngraph {
 namespace helpers {
+std::ostream &operator<<(std::ostream &os, const ReductionType &m) {
+    switch (m) {
+        case Mean:
+            os << "Mean";
+            break;
+        case Max:
+            os << "Max";
+            break;
+        case Min:
+            os << "Min";
+            break;
+        case Prod:
+            os << "Prod";
+            break;
+        case Sum:
+            os << "Sum";
+            break;
+        case LogicalOr:
+            os << "LogicalOr";
+            break;
+        case LogicalAnd:
+            os << "LogicalAnd";
+            break;
+        case LogicalXor:
+            os << "LogicalXor";
+            break;
+    }
+    return os;
+}
 
 OutputVector convert2OutputVector(const std::vector<std::shared_ptr<Node>> &nodes) {
     OutputVector outs;
@@ -484,6 +513,23 @@ std::vector<std::uint8_t> convertOutputPrecision(std::vector<std::uint8_t> &outp
         default:
             throw std::runtime_error("convertOutputPrecision can't convert from: " + element::Type(fromPrecision).get_type_name() + " precision");
     }
+}
+
+std::ostream& operator<<(std::ostream & os, ngraph::helpers::EltwiseTypes type) {
+    switch (type) {
+        case ngraph::helpers::EltwiseTypes::SUBTRACT:
+            os << "Sub";
+            break;
+        case ngraph::helpers::EltwiseTypes::MULTIPLY:
+            os << "Prod";
+            break;
+        case ngraph::helpers::EltwiseTypes::ADD:
+            os << "Sum";
+            break;
+        default:
+            std::runtime_error("NOT_SUPPORTED_OP_TYPE");
+    }
+    return os;
 }
 
 }  // namespace helpers

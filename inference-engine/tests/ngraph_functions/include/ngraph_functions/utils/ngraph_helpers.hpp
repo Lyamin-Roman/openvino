@@ -92,10 +92,29 @@ enum ActivationTypes {
     Gelu
 };
 
+enum EltwiseTypes {
+    ADD,
+    MULTIPLY,
+    SUBTRACT
+};
+
 enum QuantizationGranularity {
     Pertensor,
     Perchannel
 };
+
+enum ReductionType {
+    Mean,
+    Max,
+    Min,
+    Prod,
+    Sum,
+    LogicalOr,
+    LogicalAnd,
+    LogicalXor
+};
+
+std::ostream &operator<<(std::ostream &os, const ReductionType &m);
 
 inline std::string quantizationGranularityToString(const QuantizationGranularity &granularity) {
     static std::map<QuantizationGranularity, std::string> names = {
@@ -151,6 +170,8 @@ std::vector<std::uint8_t> convertOutputPrecision(std::vector<std::uint8_t> &outp
                                                  const element::Type_t &fromPrecision,
                                                  const element::Type_t &toPrecision,
                                                  const size_t elementsCount);
+
+std::ostream& operator<<(std::ostream & os, ngraph::helpers::EltwiseTypes type);
 
 }  // namespace helpers
 }  // namespace ngraph
