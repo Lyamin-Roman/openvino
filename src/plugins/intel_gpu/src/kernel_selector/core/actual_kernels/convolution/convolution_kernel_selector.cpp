@@ -76,7 +76,7 @@ convolution_kernel_selector::convolution_kernel_selector() {
     Attach<ConvolutionKernel_bfyx_to_fs_byx_fsv32>();
 
     // bfyx fp
-    Attach<convolution_kernel_bfyx_1x1_opt>();
+    //Attach<convolution_kernel_bfyx_1x1_opt>();
     Attach<ConvolutionKernel_bfyx_GEMMLike>();
     Attach<ConvolutionKernel_bfyx_Direct_10_10_12>();
     Attach<ConvolutionKernel_bfyx_os_iyx_osv16>();
