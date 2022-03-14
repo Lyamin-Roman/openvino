@@ -37,8 +37,9 @@
 #endif
 
 // Macros for vectorized types.
+#define ACC_TYPE                  float
 #define INPUT_VEC_TYPE            MAKE_VECTOR_TYPE(INPUT0_TYPE, TILE_IFM)
-#define ACCUMULATOR_VEC_TYPE      MAKE_VECTOR_TYPE(ACCUMULATOR_TYPE, TILE_OFM)
+#define ACCUMULATOR_VEC_TYPE      MAKE_VECTOR_TYPE(ACC_TYPE, TILE_OFM)
 #define FILTER_VEC_TYPE           MAKE_VECTOR_TYPE(FILTER_TYPE, TILE_K_OFM)
 #define BIAS_VEC_TYPE             MAKE_VECTOR_TYPE(BIAS_TYPE, TILE_OFM)
 #define OUTPUT_VEC_TYPE           MAKE_VECTOR_TYPE(OUTPUT_TYPE, TILE_OFM)
@@ -161,7 +162,7 @@ KERNEL(fc)(
                     for (uint bi = 0; bi < TILE_B; ++bi) {
                         const uint total_k = ki * TILE_K + kii;
                         INPUT0_TYPE in_val = intel_sub_group_shuffle(((INPUT0_TYPE*)(&in_0[bi]))[total_k / SIMD], total_k % SIMD);
-                        ((ACCUMULATOR_TYPE*)(&acc[bi]))[fi] += in_val * ((FILTER_TYPE*)(&wei))[kii * TILE_OFM + fi];
+                        ((ACC_TYPE*)(&acc[bi]))[fi] += in_val * ((FILTER_TYPE*)(&wei))[kii * TILE_OFM + fi];
                     }
                 }
             }
@@ -195,7 +196,7 @@ KERNEL(fc)(
                         const uint total_k = ki * TILE_K + kii;
                         if (total_k < LEFTOVER_IFM) {
                             INPUT0_TYPE in_val = intel_sub_group_shuffle(((INPUT0_TYPE*)(&in_0[bi]))[total_k / SIMD], total_k % SIMD);
-                            ((ACCUMULATOR_TYPE*)(&acc[bi]))[fi] += in_val * ((FILTER_TYPE*)(&wei))[kii * TILE_OFM + fi];
+                            ((ACC_TYPE*)(&acc[bi]))[fi] += in_val * ((FILTER_TYPE*)(&wei))[kii * TILE_OFM + fi];
                         }
                     }
                 }

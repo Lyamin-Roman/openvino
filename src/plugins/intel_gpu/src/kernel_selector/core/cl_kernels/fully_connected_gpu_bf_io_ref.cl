@@ -16,6 +16,7 @@
 //  - RELU                  - [0/1] Indicates that ReLU activation function should be used on output.
 //  - NEGATIVE_SLOPE        - [float] Factor for negative output values (required when ReLU is specified).
 
+#define ACC_TYPE float
 
 KERNEL (fully_connected_gpu_bx_xb_from_fyxb)(
     const __global UNIT_TYPE* input,
@@ -33,7 +34,7 @@ KERNEL (fully_connected_gpu_bx_xb_from_fyxb)(
     const uint batch_id = x / FILTER_OFM_NUM;
 
     const uint outXIdx = x % FILTER_OFM_NUM;
-    UNIT_TYPE result = UNIT_VAL_ZERO;
+    ACC_TYPE result = UNIT_VAL_ZERO;
 
     uint input_idx = batch_id * INPUT0_ELEMENTS_COUNT;
     input_idx = MULTIPLY_OFFSET(UNIT_TYPE, input_idx);
@@ -56,6 +57,6 @@ KERNEL (fully_connected_gpu_bx_xb_from_fyxb)(
 
     output[x] = res;
 #else
-    output[x] = ACTIVATION(result, ACTIVATION_PARAMS);
+    output[x] = ACTIVATION((UNIT_TYPE)(result), ACTIVATION_PARAMS);
 #endif
 }

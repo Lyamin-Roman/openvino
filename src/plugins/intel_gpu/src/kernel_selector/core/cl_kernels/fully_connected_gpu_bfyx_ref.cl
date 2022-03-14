@@ -6,6 +6,8 @@
 #include "include/batch_headers/fetch_data.cl"
 #include "include/batch_headers/fetch_weights.cl"
 
+#define ACC_TYPE float
+
 KERNEL(fc)(
     const __global INPUT0_TYPE* input,
     __global OUTPUT_TYPE* output,
@@ -23,7 +25,7 @@ KERNEL(fc)(
     const uint oym = get_global_id(1);
     const uint b = get_global_id(2);
 
-    ACCUMULATOR_TYPE dotProd = ACCUMULATOR_VAL_ZERO;
+    ACC_TYPE dotProd = ACCUMULATOR_VAL_ZERO;
 
     for (uint y = 0; y < INPUT0_SIZE_Y; ++y)
     {
@@ -31,7 +33,7 @@ KERNEL(fc)(
         {
             const uint input0_idx = INPUT0_GET_INDEX(b, ofm, y, x);
             const uint filter_idx = GET_FILTER_INDEX(FILTER, 0, oym, y, 0, 0);
-            dotProd += (ACCUMULATOR_TYPE)(input[input0_idx]) * (ACCUMULATOR_TYPE)(weights[filter_idx]);
+            dotProd += (ACC_TYPE)(input[input0_idx]) * (ACC_TYPE)(weights[filter_idx]);
         }
     }
 
@@ -40,7 +42,7 @@ KERNEL(fc)(
     const uint ofm = get_global_id(0);
     const uint b = get_global_id(1);
 
-    ACCUMULATOR_TYPE dotProd = ACCUMULATOR_VAL_ZERO;
+    ACC_TYPE dotProd = ACCUMULATOR_VAL_ZERO;
 
     for (uint ifm = 0; ifm < INPUT0_FEATURE_NUM; ++ifm)
     {
@@ -50,7 +52,7 @@ KERNEL(fc)(
             {
                 const uint input0_idx = INPUT0_GET_INDEX(b, ifm, y, x);
                 const uint filter_idx = GET_FILTER_INDEX(FILTER, 0, ofm, ifm, y, x);
-                dotProd += (ACCUMULATOR_TYPE)(input[input0_idx]) * (ACCUMULATOR_TYPE)(weights[filter_idx]);
+                dotProd += (ACC_TYPE)(input[input0_idx]) * (ACC_TYPE)(weights[filter_idx]);
             }
         }
     }
