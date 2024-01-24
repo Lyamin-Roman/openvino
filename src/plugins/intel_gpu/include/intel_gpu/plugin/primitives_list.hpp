@@ -278,3 +278,4 @@ REGISTER_FACTORY(internal, ReadValue);
 REGISTER_FACTORY(internal, Gemm);
 REGISTER_FACTORY(internal, SwiGLU);
 REGISTER_FACTORY(internal, IndirectGemm);
+REGISTER_FACTORY(internal, RoPE);
