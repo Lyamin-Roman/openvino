@@ -39,7 +39,6 @@ event::ptr input_layout_inst::set_data(memory::ptr mem) {
     auto ol = get_node_output_layout();
 
     check_memory_to_set(*mem, ol);
-    event::ptr ev = nullptr;
     auto& engine = get_network().get_engine();
     auto& stream = get_network().get_stream();
 
@@ -47,7 +46,10 @@ event::ptr input_layout_inst::set_data(memory::ptr mem) {
     if (mem->is_allocated_by(engine) || mem->get_layout().count() == 0) {
         OPENVINO_ASSERT(!_outputs.empty(), "[GPU] Can't set data for empty input memory");
         _outputs[0] = mem;
-        ev = stream.create_user_event(true);
+        GPU_DEBUG_GET_INSTANCE(debug_config);
+        GPU_DEBUG_IF(!debug_config->dump_profiling_data.empty()) {
+            stream.create_user_event(true);
+        }
     } else {
         if (_outputs.empty() || !_outputs[0]) {
             _outputs.resize(1);
@@ -58,11 +60,11 @@ event::ptr input_layout_inst::set_data(memory::ptr mem) {
             _outputs[0] = engine.allocate_memory(mem->get_layout(), engine.get_preferred_memory_allocation_type(), false);
         }
         mem_lock<uint8_t> src(mem, stream);
-        ev = _outputs[0]->copy_from(stream, src.data(), false);
+        _outputs[0]->copy_from(stream, src.data(), false);
     }
     _has_valid_input = true;
     _output_changed = true;
-    return ev;
+    return nullptr;
 }
 
 void input_layout_inst::update_shape() {

@@ -50,7 +50,7 @@ struct read_value_impl : public typed_primitive_impl<read_value> {
         }
 
         auto& variable = instance.get_network().get_variable(variable_id);
-        auto &stream = instance.get_network().get_stream();
+        auto& stream = instance.get_network().get_stream();
 
         OPENVINO_ASSERT(variable.get_layout() == instance.get_output_layout(),
                 "[GPU] Layout mismatch: variable layout: ", variable.get_layout().to_short_string(),
@@ -68,7 +68,8 @@ struct read_value_impl : public typed_primitive_impl<read_value> {
             return instance.output_memory(0).copy_from(stream, *variable.get_memory(), false);
         }
 
-        return instance.get_network().get_stream().create_user_event(true);
+        const bool out_of_order_queue = stream.get_queue_type() == QueueTypes::out_of_order;
+        return out_of_order_queue ? stream.create_user_event(true) : nullptr;
     }
 
     void init_kernels(const kernels_cache& , const kernel_impl_params&) override {}

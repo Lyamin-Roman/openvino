@@ -403,7 +403,8 @@ struct non_max_suppression_impl : typed_primitive_impl<non_max_suppression> {
     event::ptr execute_impl(const std::vector<event::ptr>& events, typed_primitive_inst<non_max_suppression>& instance) override {
         auto& stream = instance.get_network().get_stream();
 
-        const bool pass_through_events = (stream.get_queue_type() == QueueTypes::out_of_order) && instance.get_node().is_in_shape_of_subgraph();
+        const bool out_of_order_queue = stream.get_queue_type() == QueueTypes::out_of_order;
+        const bool pass_through_events = out_of_order_queue && instance.get_node().is_in_shape_of_subgraph();
 
         if (!pass_through_events) {
             for (auto e : events) {
@@ -421,7 +422,7 @@ struct non_max_suppression_impl : typed_primitive_impl<non_max_suppression> {
             }
         }
 
-        return stream.create_user_event(true);
+        return out_of_order_queue ? stream.create_user_event(true) : nullptr;
     }
 
     static std::unique_ptr<primitive_impl> create(const non_max_suppression_node&, const kernel_impl_params&) {

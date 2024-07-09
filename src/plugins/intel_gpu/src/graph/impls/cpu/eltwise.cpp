@@ -79,7 +79,8 @@ struct eltwise_impl : public typed_primitive_impl<eltwise> {
         OV_ITT_SCOPED_TASK(ov::intel_gpu::itt::domains::intel_gpu_plugin, "eltwise::execute_impl");
         auto& stream = instance.get_network().get_stream();
 
-        const bool pass_through_events = (stream.get_queue_type() == QueueTypes::out_of_order) && instance.get_node().is_in_shape_of_subgraph();
+        const bool out_of_order_queue = stream.get_queue_type() == QueueTypes::out_of_order;
+        const bool pass_through_events = out_of_order_queue && instance.get_node().is_in_shape_of_subgraph();
 
         if (!pass_through_events) {
             for (auto e : events) {
@@ -200,7 +201,7 @@ struct eltwise_impl : public typed_primitive_impl<eltwise> {
             }
         }
 
-        return stream.create_user_event(true);
+        return out_of_order_queue ? stream.create_user_event(true) : nullptr;
     }
 
     void init_kernels(const kernels_cache& , const kernel_impl_params&) override {}
