@@ -567,6 +567,21 @@ pass::EliminateConcatStridedSlice::EliminateConcatStridedSlice() {
                     return false;
                 auto end_values = end_constant_node->cast_vector<int64_t>();
 
+                // check that concatenated and split axis is the same
+                auto check_indices = [concat_axis](const std::vector<int64_t>& indices) {
+                    for (size_t axis = 0; axis < indices.size(); ++axis) {
+                        if (indices[axis] != 0 && axis != concat_axis) {
+                            return false;
+                        }
+                    }
+                    return true;
+                };
+
+                if (!check_indices(begin_values) ||
+                    !check_indices(end_values)) {
+                    return false;
+                }
+
                 slice_out_index_in_concat.push_back(
                     std::make_tuple(strided_slice_node, begin_values[concat_axis], end_values[concat_axis] - 1));
             } else {
