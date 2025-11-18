@@ -22,13 +22,16 @@ layout gemm_inst::calc_output_layout(gemm_node const& node, kernel_impl_params c
     auto input0_shape = input0_layout.get_shape();
     auto input1_shape = input1_layout.get_shape();
 
+    // bool reordered = prim->input_rank > 4 || prim->weight_rank > 4;
+    size_t input_rank = /* reordered ? output_rank :  */prim->input_rank;
+    size_t weight_rank = /* reordered ? output_rank : */ prim->weight_rank;
+    size_t output_rank = std::max(prim->input_rank, prim->weight_rank);
+
+    auto input0_shape_cropped = ov::Shape(input0_shape.begin(), input0_shape.begin() + input_rank);
+    auto input1_shape_cropped = ov::Shape(input1_shape.begin(), input1_shape.begin() + weight_rank);
+
     auto input0_transpose_order = prim->input0_transpose_order;
     auto input1_transpose_order = prim->input1_transpose_order;
-
-    bool reordered = prim->input_rank > 4 || prim->weight_rank > 4;
-    size_t output_rank = std::max(prim->input_rank, prim->weight_rank);
-    size_t input_rank = reordered ? output_rank : prim->input_rank;
-    size_t weight_rank = reordered ? output_rank : prim->weight_rank;
 
     auto update_input_shape = [&output_rank](const ov::Shape& input_shape, size_t rank, std::vector<int64_t> input_order, bool first_input) {
         auto input_shape_update = ov::Shape();
@@ -60,8 +63,8 @@ layout gemm_inst::calc_output_layout(gemm_node const& node, kernel_impl_params c
         return shape_transposed;
     };
 
-    auto input0_shape_update = update_input_shape(input0_shape, input_rank, input0_transpose_order, true);
-    auto input1_shape_update = update_input_shape(input1_shape, weight_rank, input1_transpose_order, false);
+    auto input0_shape_update = update_input_shape(input0_shape_cropped, input_rank, input0_transpose_order, true);
+    auto input1_shape_update = update_input_shape(input1_shape_cropped, weight_rank, input1_transpose_order, false);
 
     ov::Shape bias_shape(output_rank);
     if (prim->input_size() == 3) {
@@ -95,6 +98,10 @@ layout gemm_inst::calc_output_layout(gemm_node const& node, kernel_impl_params c
     }
 
     auto output_format = input0_layout.format;
+
+    if (output_shape.size() > output_format.dimension()) {
+        output_format = cldnn::format::adjust_to_rank(output_format, output_shape.size());
+    }
 
     if (node.get_preferred_impl_type() == impl_types::onednn && node.get_preferred_output_fmt() != format::any) {
         output_format = node.get_preferred_output_fmt();
@@ -215,14 +222,14 @@ std::vector<layout> gemm_inst::transform_input_layouts(const std::shared_ptr<con
     auto input0_pshape = input_layouts[0].get_partial_shape();
     auto input1_pshape = input_layouts[1].get_partial_shape();
 
-    bool reordered = primitive->input_rank > 4 || primitive->weight_rank > 4;
+    // bool reordered = primitive->input_rank > 4 || primitive->weight_rank > 4;
     size_t output_rank = std::max(primitive->input_rank, primitive->weight_rank);
 
     size_t input_format_rank = input_layouts[0].get_rank();
     size_t weight_format_rank = input_layouts[1].get_rank();
     // No need to get output_rank for rank>4 inputs when allow_new_shape_infer=true
-    size_t input_rank = (reordered && !allow_new_shape_infer) ? output_rank : primitive->input_rank;
-    size_t weight_rank = (reordered && !allow_new_shape_infer) ? output_rank : primitive->weight_rank;
+    size_t input_rank = /* (reordered && !allow_new_shape_infer) ? output_rank : */ primitive->input_rank;
+    size_t weight_rank = /* (reordered && !allow_new_shape_infer) ? output_rank :  */primitive->weight_rank;
 
     auto transposed_input0_pshape = get_transposed_input_shape(input0_pshape, input_rank, output_rank, primitive->transpose_input0, true);
     auto transposed_input1_pshape = get_transposed_input_shape(input1_pshape, weight_rank, output_rank, primitive->transpose_input1, false);
