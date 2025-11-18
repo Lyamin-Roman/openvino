@@ -16,7 +16,7 @@ static void CreateRangeOp(ProgramBuilder &p, const std::shared_ptr<ov::op::v4::R
     auto output_dtype = cldnn::element_type_to_data_type(op->get_output_element_type(0));
 
     std::shared_ptr<cldnn::range> range_prim = nullptr;
-    if (p.use_new_shape_infer()) {
+    if (output_pshape.is_dynamic()) {
         range_prim = std::make_shared<cldnn::range>(layer_type_name_ID(op),
                                                     p.GetInputInfo(op),
                                                     output_dtype);

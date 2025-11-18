@@ -29,6 +29,10 @@ std::vector<layout> range_inst::calc_output_layouts(range_node const& /*node*/, 
     auto desc = impl_param.typed_desc<range>();
     auto output_data_type = desc->output_data_types[0].value_or(impl_param.get_input_layout().data_type);
 
+    if (desc->output_layout.is_static()) {
+        return {desc->output_layout};
+    }
+
     ov::op::v4::Range op;
     op.set_output_type(output_data_type);
     std::vector<ShapeType> output_shapes = {ShapeType::dynamic(1)};
