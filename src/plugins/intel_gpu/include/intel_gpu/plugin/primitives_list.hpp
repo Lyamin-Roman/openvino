@@ -328,3 +328,8 @@ REGISTER_FACTORY(internal, GatherMatmul);
 REGISTER_FACTORY(internal, GatherMatmulCompressed);
 REGISTER_FACTORY(internal, GroupedMatMulCompressed);
 REGISTER_FACTORY(internal, Atan2);
+
+// ------------------------- Tensor Parallel ops ----------------------------- //
+#ifdef ENABLE_TENSOR_PARALLEL
+REGISTER_FACTORY(tp, TPAllReduce);
+#endif

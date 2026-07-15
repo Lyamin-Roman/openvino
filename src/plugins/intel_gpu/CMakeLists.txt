@@ -134,6 +134,11 @@ add_subdirectory(src/graph)
 
 file(GLOB_RECURSE PLUGIN_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/plugin/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/include/intel_gpu/plugin/*.hpp)
 
+if(ENABLE_TENSOR_PARALLEL)
+    # Add TP plugin's TPAllReduce op source (needed for REGISTER_FACTORY typeinfo)
+    list(APPEND PLUGIN_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../tensor_parallel/src/op/tp_all_reduce.cpp)
+endif()
+
 ov_add_plugin(NAME ${TARGET_NAME}
               DEVICE_NAME "GPU"
               SOURCES ${PLUGIN_SOURCES}
@@ -150,6 +155,12 @@ target_link_libraries(${TARGET_NAME} PRIVATE openvino_intel_gpu_graph openvino::
 
 target_include_directories(${TARGET_NAME} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/)
+
+if(ENABLE_TENSOR_PARALLEL)
+    target_include_directories(${TARGET_NAME} PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/../tensor_parallel/include/)
+    target_compile_definitions(${TARGET_NAME} PRIVATE ENABLE_TENSOR_PARALLEL)
+endif()
 
 ov_set_threading_interface_for(${TARGET_NAME})
 ov_gpu_set_runtime_interface_for(${TARGET_NAME})

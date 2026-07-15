@@ -42,12 +42,20 @@ else()
     set(ENABLE_ONEDNN_FOR_GPU_DEFAULT ON)
 endif()
 
-# Set default GPU runtime to OCL
+ov_option (ENABLE_TENSOR_PARALLEL "Enables Tensor Parallel Plugin" ON)
+
 set(OV_GPU_DEFAULT_RT "OCL")
+if(ENABLE_TENSOR_PARALLEL)
+    set(OV_GPU_DEFAULT_RT "ZE")
+endif()
 if (ENABLE_INTEL_GPU)
     ov_option_enum (GPU_RT_TYPE "Type of GPU runtime. Supported value: OCL, SYCL and ZE (L0 is accepted as ZE alias)" ${OV_GPU_DEFAULT_RT} ALLOWED_VALUES ZE OCL L0 SYCL)
     if(GPU_RT_TYPE STREQUAL "L0")
         set(GPU_RT_TYPE "ZE" CACHE STRING "Type of GPU runtime" FORCE)
+    endif()
+    if(ENABLE_TENSOR_PARALLEL AND NOT GPU_RT_TYPE STREQUAL "ZE")
+        message(FATAL_ERROR "ENABLE_TENSOR_PARALLEL requires GPU_RT_TYPE=ZE (aka L0); got '${GPU_RT_TYPE}'. "
+                            "Rerun cmake with -DGPU_RT_TYPE=ZE (or -DGPU_RT_TYPE=L0), or disable TP via -DENABLE_TENSOR_PARALLEL=OFF.")
     endif()
 endif()
 
@@ -228,7 +236,7 @@ else()
     set(FORCE_FRONTENDS_USE_PROTOBUF OFF)
 endif()
 
-if(ENABLE_INTEL_NPU OR (ENABLE_INTEL_GPU AND GPU_RT_TYPE STREQUAL "ZE"))
+if(ENABLE_INTEL_NPU OR (ENABLE_INTEL_GPU AND GPU_RT_TYPE STREQUAL "ZE") OR ENABLE_TENSOR_PARALLEL)
     set(ENABLE_OV_ZERO_LOADER ON)
 else()
     set(ENABLE_OV_ZERO_LOADER OFF)
