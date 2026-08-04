@@ -134,11 +134,6 @@ add_subdirectory(src/graph)
 
 file(GLOB_RECURSE PLUGIN_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/plugin/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/include/intel_gpu/plugin/*.hpp)
 
-if(ENABLE_TP_GPU)
-    # Add TP plugin's TPAllReduce op source (needed for REGISTER_FACTORY typeinfo)
-    list(APPEND PLUGIN_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../tp_gpu/src/op/tp_all_reduce.cpp)
-endif()
-
 ov_add_plugin(NAME ${TARGET_NAME}
               DEVICE_NAME "GPU"
               SOURCES ${PLUGIN_SOURCES}
@@ -157,8 +152,9 @@ target_include_directories(${TARGET_NAME} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 
 if(ENABLE_TP_GPU)
-    target_include_directories(${TARGET_NAME} PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}/../tp_gpu/include/)
+    # Collective ops come from the TP_GPU plugin's ops library: the factory below
+    # casts to ov::tp_gpu::op::TPAllReduce and needs its typeinfo.
+    target_link_libraries(${TARGET_NAME} PRIVATE openvino_tp_gpu_ops)
     target_compile_definitions(${TARGET_NAME} PRIVATE ENABLE_TP_GPU)
 endif()
 
