@@ -193,12 +193,12 @@ REGISTER_IMPLS(moe_scatter_reduction);
 REGISTER_IMPLS(moe_gather);
 REGISTER_IMPLS(gather_matmul);
 REGISTER_IMPLS(grouped_matmul);
+#ifdef ENABLE_TP_GPU
+REGISTER_IMPLS(tp_allreduce);
+#endif
 
 REGISTER_DEFAULT_IMPLS(assign, CPU_S, CPU_D);
 REGISTER_DEFAULT_IMPLS(read_value, CPU_S, CPU_D);
-#ifdef ENABLE_TENSOR_PARALLEL
-REGISTER_IMPLS(tp_allreduce);
-#endif
 REGISTER_DEFAULT_IMPLS(condition, COMMON_S, COMMON_D);
 REGISTER_DEFAULT_IMPLS(input_layout, COMMON_S, COMMON_D);
 REGISTER_DEFAULT_IMPLS(non_max_suppression_gather, CPU_S);

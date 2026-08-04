@@ -330,6 +330,6 @@ REGISTER_FACTORY(internal, GroupedMatMulCompressed);
 REGISTER_FACTORY(internal, Atan2);
 
 // ------------------------- Tensor Parallel ops ----------------------------- //
-#ifdef ENABLE_TENSOR_PARALLEL
-REGISTER_FACTORY(tp, TPAllReduce);
+#ifdef ENABLE_TP_GPU
+REGISTER_FACTORY(tp_gpu, TPAllReduce);
 #endif
