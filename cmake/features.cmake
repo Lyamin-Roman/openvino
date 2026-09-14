@@ -66,6 +66,7 @@ ov_dependent_option (ENABLE_INTEL_NPU_INTERNAL "NPU plugin internal components f
 ov_option (ENABLE_DEBUG_CAPS "enable OpenVINO debug capabilities at runtime" OFF)
 ov_dependent_option (ENABLE_NPU_DEBUG_CAPS "enable NPU debug capabilities at runtime" ON "ENABLE_DEBUG_CAPS;ENABLE_INTEL_NPU" OFF)
 ov_dependent_option (ENABLE_GPU_DEBUG_CAPS "enable GPU debug capabilities at runtime" ON "ENABLE_DEBUG_CAPS;ENABLE_INTEL_GPU" OFF)
+ov_dependent_option (ENABLE_TP_GPU_DEBUG_CAPS "enable TP_GPU debug capabilities at runtime" ON "ENABLE_DEBUG_CAPS;ENABLE_TP_GPU" OFF)
 ov_dependent_option (ENABLE_CPU_DEBUG_CAPS "enable CPU debug capabilities at runtime" ON "ENABLE_DEBUG_CAPS;ENABLE_INTEL_CPU" OFF)
 ov_dependent_option (ENABLE_SNIPPETS_DEBUG_CAPS "enable Snippets debug capabilities at runtime" ON "ENABLE_DEBUG_CAPS" OFF)
 
