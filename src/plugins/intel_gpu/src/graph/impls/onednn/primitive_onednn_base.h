@@ -23,9 +23,6 @@
 
 #include <oneapi/dnnl/dnnl.hpp>
 
-#include <chrono>
-#include <cstdlib>
-
 namespace cldnn {
 namespace onednn {
 
