@@ -32,13 +32,6 @@ set(COMMON_INCLUDE_DIRS $<BUILD_INTERFACE:${MAIN_DIR}/src>
                         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/impls>
 )
 
-if(ENABLE_TP_GPU)
-    add_definitions(-DENABLE_TP_GPU)
-    if(ENABLE_TP_GPU_DEBUG_CAPS)
-        add_definitions(-DTP_DEBUG_CONFIG=1)
-    endif()
-endif()
-
 set(COMMON_LINK_LIBRARIES openvino::shape_inference # for tensor accessor
                           openvino_intel_gpu_kernels # for cl_kernel_data_serializer
                           openvino_intel_gpu_runtime
@@ -49,12 +42,10 @@ set(COMMON_LINK_LIBRARIES openvino::shape_inference # for tensor accessor
 )
 
 if(ENABLE_TP_GPU)
-    # Brings in the TP_GPU headers (coordination + device coordinator) used by
-    # the tp_allreduce implementations.
     list(APPEND COMMON_LINK_LIBRARIES openvino_tp_gpu_ops)
 endif()
 
-if(GPU_RT_TYPE STREQUAL "ZE" OR ENABLE_TP_GPU)
+if(GPU_RT_TYPE STREQUAL "ZE")
     # Onednn needs ZE headers
     list(APPEND COMMON_LINK_LIBRARIES openvino::zero_loader)
 endif()

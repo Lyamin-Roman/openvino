@@ -152,10 +152,7 @@ target_include_directories(${TARGET_NAME} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 
 if(ENABLE_TP_GPU)
-    # Collective ops come from the TP_GPU plugin's ops library: the factory below
-    # casts to ov::tp_gpu::op::TPAllReduce and needs its typeinfo.
     target_link_libraries(${TARGET_NAME} PRIVATE openvino_tp_gpu_ops)
-    target_compile_definitions(${TARGET_NAME} PRIVATE ENABLE_TP_GPU)
 endif()
 
 ov_set_threading_interface_for(${TARGET_NAME})
