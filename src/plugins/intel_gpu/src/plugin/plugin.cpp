@@ -48,11 +48,11 @@
 #include "transformations/init_node_info.hpp"
 #include "transformations/rt_info/fused_names_attribute.hpp"
 #include "transformations/utils/utils.hpp"
+#include "openvino/runtime/tp/collective_contract.hpp"
 
 #ifdef ENABLE_TP
 #    include <optional>
 
-#    include "openvino/runtime/tp/collective_contract.hpp"
 #    include "ze/tp/rank_communicator.hpp"
 #    include "ze/ze_engine.hpp"
 #endif
@@ -320,6 +320,9 @@ ov::SoPtr<ov::IRemoteContext> Plugin::create_context(const ov::AnyMap& remote_pr
     if (remote_properties.count(ov::tp::internal::device_group.name()) != 0) {
         return create_tp_context(remote_properties);
     }
+#else
+    OPENVINO_ASSERT(remote_properties.count(ov::tp::internal::device_group.name()) == 0,
+                    "[GPU] tensor-parallel contexts need a GPU plugin built with ENABLE_TP on the Level Zero runtime");
 #endif
     return std::make_shared<RemoteContextImpl>(get_default_contexts(), remote_properties);
 }
