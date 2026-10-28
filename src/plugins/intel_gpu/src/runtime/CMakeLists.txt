@@ -33,6 +33,15 @@ file(GLOB LIBRARY_SOURCES_ZE
     "${CMAKE_CURRENT_SOURCE_DIR}/ze/compute_runtime/*.h"
 )
 
+# Tensor-parallel collectives: Level Zero only, and only in builds with the TP plugin.
+if(ENABLE_TP)
+    file(GLOB LIBRARY_SOURCES_ZE_TP
+        "${CMAKE_CURRENT_SOURCE_DIR}/ze/tp/*.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/ze/tp/*.cpp"
+    )
+    list(APPEND LIBRARY_SOURCES_ZE ${LIBRARY_SOURCES_ZE_TP})
+endif()
+
 file(GLOB LIBRARY_SOURCES_SYCL
     "${CMAKE_CURRENT_SOURCE_DIR}/sycl/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/sycl/*.hpp"

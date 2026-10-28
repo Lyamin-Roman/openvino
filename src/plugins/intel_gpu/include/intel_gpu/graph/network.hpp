@@ -14,7 +14,6 @@
 #include "intel_gpu/runtime/event.hpp"
 #include "intel_gpu/runtime/stream.hpp"
 #include "intel_gpu/runtime/shape_predictor.hpp"
-#include "intel_gpu/runtime/collective_comm_registry.hpp"
 #include "intel_gpu/plugin/variable_state.hpp"
 
 #include <map>
@@ -28,6 +27,12 @@
 namespace ov::intel_gpu {
 class OutputMemoryBlock;
 }  // namespace ov::intel_gpu
+
+#ifdef ENABLE_TP
+namespace cldnn::ze::tp {
+class Channel;
+}  // namespace cldnn::ze::tp
+#endif
 
 namespace cldnn {
 
@@ -230,15 +235,16 @@ public:
 
     const ExecutionConfig& get_config() const { return _program->get_config(); }
 
-    /// Collective groups this network takes part in. Injected by the
-    /// tensor-parallel plugin after compile or import, so that neither the
-    /// graph nor the primitives carry runtime-only pointers.
-    void set_collective_comm_registry(ov::intel_gpu::CollectiveCommRegistryPtr registry) {
-        _collective_comm_registry = std::move(registry);
+#ifdef ENABLE_TP
+    /// The channel this network's tensor-parallel collectives run through. Attached when the model is bound
+    /// to a TP context at compile or import, so neither the graph nor the primitives carry runtime pointers.
+    void set_tp_channel(std::shared_ptr<cldnn::ze::tp::Channel> channel) {
+        _tp_channel = std::move(channel);
     }
-    const ov::intel_gpu::CollectiveCommRegistryPtr& get_collective_comm_registry() const {
-        return _collective_comm_registry;
+    const std::shared_ptr<cldnn::ze::tp::Channel>& get_tp_channel() const {
+        return _tp_channel;
     }
+#endif
 
     std::shared_ptr<ShapePredictor> get_shape_predictor() { return _shape_predictor; }
     void set_shape_predictor(std::shared_ptr<ShapePredictor> shape_predictor) { _shape_predictor = shape_predictor; }
@@ -291,7 +297,9 @@ private:
 
     std::shared_ptr<ShapePredictor> _shape_predictor;
 
-    ov::intel_gpu::CollectiveCommRegistryPtr _collective_comm_registry;
+#ifdef ENABLE_TP
+    std::shared_ptr<cldnn::ze::tp::Channel> _tp_channel;
+#endif
 
     void build_exec_order();
     void allocate_primitive_instance(program_node const& node);

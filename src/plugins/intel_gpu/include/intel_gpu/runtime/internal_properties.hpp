@@ -9,7 +9,6 @@
 #include "openvino/runtime/intel_gpu/properties.hpp"
 
 #include "intel_gpu/primitives/implementation_desc.hpp"
-#include "intel_gpu/runtime/collective_comm_registry.hpp"
 #include "openvino/core/rt_info/weightless_caching_attributes.hpp"
 
 namespace ov::intel_gpu {
@@ -127,18 +126,6 @@ using GpuWeightlessCacheMap = std::unordered_map<size_t, ov::WeightlessCacheAttr
 static constexpr Property<std::shared_ptr<GpuWeightlessCacheMap>, PropertyMutability::RW> weightless_attr{"GPU_WEIGHTLESS_ATTR"};
 
 /**
- * @brief Collective groups the compiled model takes part in, one registry per
- * stream worker. Injected by the tensor-parallel plugin through
- * `ICompiledModel::set_property` after compile or import, so the same path
- * serves both.
- *
- * State of a compiled model rather than a compilation parameter, which is why
- * it is not an ExecutionConfig option.
- */
-static constexpr Property<std::vector<CollectiveCommRegistryPtr>, PropertyMutability::RW>
-    collective_comm_registry_set{"GPU_COLLECTIVE_COMM_REGISTRY_SET"};
-
-/**
  * @brief Defines queue type that must be used for model execution
  */
 static constexpr Property<QueueTypes, PropertyMutability::RW> queue_type{"GPU_QUEUE_TYPE"};
@@ -243,6 +230,57 @@ static constexpr Property<bool, ov::PropertyMutability::RW> print_input_data_sha
 static constexpr Property<bool, ov::PropertyMutability::RW> pa_integrity_check{"GPU_PA_INTEGRITY_CHECK"};
 static constexpr Property<std::vector<int>, ov::PropertyMutability::RW> micro_sdpa_workgroup_config{"GPU_MICRO_SDPA_WORKGROUP_CONFIG"};
 static constexpr Property<std::string, ov::PropertyMutability::RW> pa_mixed_route_mode{"GPU_PA_MIXED_ROUTE_MODE"};
+
+#ifdef ENABLE_TP
+// ---- Tensor parallel: collectives of the ranks of a TP compiled model ----
+//
+// Read when a TP context is created (create_context with ov::tp::internal parameters), from the device's
+// configuration, the context parameters and the environment, so the TP plugin can pass its own settings down.
+
+/// What the collectives measure and report.
+enum class TPProfilingMode : uint8_t {
+    NONE = 0,
+    HOST = 1,
+    DEVICE = 2,
+    ALL = 3,
+};
+
+inline std::ostream& operator<<(std::ostream& os, const TPProfilingMode& val) {
+    switch (val) {
+        case TPProfilingMode::NONE: os << "NONE"; break;
+        case TPProfilingMode::HOST: os << "HOST"; break;
+        case TPProfilingMode::DEVICE: os << "DEVICE"; break;
+        case TPProfilingMode::ALL: os << "ALL"; break;
+        default: os << "unknown";
+    }
+    return os;
+}
+
+inline std::istream& operator>>(std::istream& is, TPProfilingMode& val) {
+    std::string str;
+    is >> str;
+    if (str == "NONE") {
+        val = TPProfilingMode::NONE;
+    } else if (str == "HOST") {
+        val = TPProfilingMode::HOST;
+    } else if (str == "DEVICE") {
+        val = TPProfilingMode::DEVICE;
+    } else if (str == "ALL") {
+        val = TPProfilingMode::ALL;
+    } else {
+        OPENVINO_THROW("Unsupported TPProfilingMode value: ", str);
+    }
+    return is;
+}
+
+static constexpr Property<bool, ov::PropertyMutability::RW> tp_enable_halving{"GPU_TP_ENABLE_HALVING"};
+static constexpr Property<uint64_t, ov::PropertyMutability::RW> tp_halving_max_bytes{"GPU_TP_HALVING_MAX_BYTES"};
+static constexpr Property<ov::log::Level, ov::PropertyMutability::RW> tp_verbose{"GPU_TP_VERBOSE"};
+static constexpr Property<TPProfilingMode, ov::PropertyMutability::RW> tp_profiling{"GPU_TP_PROFILING"};
+static constexpr Property<uint64_t, ov::PropertyMutability::RW> tp_dump_period{"GPU_TP_DUMP_PERIOD"};
+static constexpr Property<bool, ov::PropertyMutability::RW> tp_force_sync_collective{"GPU_TP_FORCE_SYNC_COLLECTIVE"};
+static constexpr Property<bool, ov::PropertyMutability::RW> tp_skip_collective{"GPU_TP_SKIP_COLLECTIVE"};
+#endif  // ENABLE_TP
 }  // namespace ov::intel_gpu
 
 namespace cldnn {

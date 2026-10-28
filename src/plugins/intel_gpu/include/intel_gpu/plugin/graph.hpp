@@ -99,6 +99,10 @@ private:
     std::map<size_t, cldnn::layout> m_input_layouts;
 
     void build(std::shared_ptr<cldnn::program> program);
+#ifdef ENABLE_TP
+    /// Binds the network's tensor-parallel collectives to the context's communicator.
+    void bind_collectives();
+#endif
     std::shared_ptr<ov::Model> get_runtime_model(std::vector<cldnn::primitive_info>& pi, bool filter_const_primitives = true);
 };
 
