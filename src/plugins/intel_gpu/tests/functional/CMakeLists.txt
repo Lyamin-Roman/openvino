@@ -18,6 +18,11 @@ set(EXCLUDED_TEST_PATHS)
 if(NOT ENABLE_MLIR_FOR_GPU)
     list(APPEND EXCLUDED_TEST_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/mlir_op")
 endif()
+# The collectives are built only with the TP plugin.
+if(NOT ENABLE_TP)
+    list(APPEND EXCLUDED_TEST_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/tp"
+                                    "${CMAKE_CURRENT_SOURCE_DIR}/shared_tests_instances/behavior/tp")
+endif()
 
 ov_add_test_target(
         NAME
